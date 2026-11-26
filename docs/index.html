@@ -224,8 +224,8 @@
           Can longitudinal search visibility, user engagement, and pre-cutoff ranking momentum signals reliably prioritize web pages by their risk of future organic traffic decline across unseen client domains?
           Using the FlyRank ML Internship warehouse release (<code>v20260703</code>), we constructed a leakage-free panel of 118,072 eligible URLs across 37 anonymized clients by strictly separating a 90-day observation window (March–May 2026) from a 30-day future outcome window (June 2026).
           We trained a 19-feature Random Forest classifier evaluated under a client-grouped holdout split (8 unseen domains, 44,556 URLs) against a deterministic age-and-demand heuristic baseline.
-          The model outperformed the heuristic baseline in out-of-sample ranking discrimination (ROC-AUC 0.560 vs. 0.537; PR-AUC 0.812 vs. 0.804), driven primarily by average rank position, 90-day impressions, click-through rate, and 30-vs-60-day position drift (<code>pos_delta_30v60</code>).
-          Translating calibrated probabilities into a four-tier editorial action playbook isolated 248 <code>Urgent Refresh</code> candidates (81.9% observed decline rate) and 65 <code>Standard Refresh</code> candidates (90.8% observed decline rate) for human-in-the-loop review.
+          The model outperformed the heuristic baseline in out-of-sample ranking discrimination (ROC-AUC 0.565 vs. 0.537; PR-AUC 0.815 vs. 0.804), driven primarily by average rank position, 90-day impressions, click-through rate, and 30-vs-60-day position drift (<code>pos_delta_30v60</code>).
+          Translating calibrated probabilities into a four-tier editorial action playbook isolated 239 <code>Urgent Refresh</code> candidates (79.9% observed decline rate) and 75 <code>Standard Refresh</code> candidates (92.0% observed decline rate) for human-in-the-loop review.
         </p>
       </div>
     </header>
@@ -307,7 +307,7 @@
 
       <h3>Honest Validation &amp; Leakage Audit</h3>
       <p>
-        Pages within the same website share domain authority, CMS templates, and site-wide algorithm sensitivity. Using a standard random split leaks domain signatures across partitions, inflating offline PR-AUC to <strong>0.859</strong>. Applying a strict <strong>Grouped Client-Holdout Split</strong> (<code>GroupShuffleSplit</code> on <code>client_hash_id</code>, 29 train clients / 8 unseen test clients) eliminates entity overlap and reveals a realistic out-of-sample PR-AUC of <strong>0.812</strong> (a <code>+0.047</code> memorization gap).
+        Pages within the same website share domain authority, CMS templates, and site-wide algorithm sensitivity. Using a standard random split leaks domain signatures across partitions, inflating offline PR-AUC to <strong>0.858</strong>. Applying a strict <strong>Grouped Client-Holdout Split</strong> (<code>GroupShuffleSplit</code> on <code>client_hash_id</code>, 29 train clients / 8 unseen test clients) eliminates entity overlap and reveals a realistic out-of-sample PR-AUC of <strong>0.815</strong> (a <code>+0.043</code> memorization gap).
       </p>
     </section>
 
@@ -344,10 +344,10 @@
           </tr>
           <tr class="highlight">
             <td>Random Forest Classifier (19 Features, Grouped Split)</td>
-            <td class="num">0.560</td>
-            <td class="num">0.812</td>
-            <td class="num">0.450</td>
-            <td class="num">0.680</td>
+            <td class="num">0.565</td>
+            <td class="num">0.815</td>
+            <td class="num">0.500</td>
+            <td class="num">0.720</td>
           </tr>
         </tbody>
       </table>
@@ -355,7 +355,7 @@
       <figure>
         <img src="img/fig1_model_comparison.png" alt="Ranking Performance on Unseen Client Holdout Split" />
         <figcaption>
-          <strong>Figure 1:</strong> Out-of-sample comparison across PR-AUC, Precision@20, and Precision@50 on the 8 unseen client domains (n = 44,556 URLs). While the Random Forest leads globally in PR-AUC (0.812) and ROC-AUC (0.560), extreme top-20 tail concentration from a single test client depresses Precision@20 before stabilizing across broader action tiers.
+          <strong>Figure 1:</strong> Out-of-sample comparison across PR-AUC, Precision@20, and Precision@50 on the 8 unseen client domains (n = 44,556 URLs). While the Random Forest leads globally in PR-AUC (0.815) and ROC-AUC (0.565), extreme top-20 tail concentration from a single test client depresses Precision@20 before stabilizing across broader action tiers.
         </figcaption>
       </figure>
 
@@ -379,7 +379,7 @@
       </div>
       <ul>
         <li><strong>Observational vs. Causal Inference:</strong> A high <code>rf_prob</code> score indicates elevated observed risk of traffic decline under historical patterns; it does not establish that refreshing a page will cause recovery without a controlled A/B or holdout experiment.</li>
-        <li><strong>Extreme-Tail Sensitivity Across Heterogeneous Domains:</strong> As shown in Figure 1, <code>Precision@20</code> (0.450) trails the heuristic baseline even though global PR-AUC (0.812) and full-tier precision (81.9% across 248 <code>Urgent Refresh</code> pages) exceed both the baseline and base rate. Cross-domain probability calibration remains sensitive when a single unseen client exhibits atypical site-wide volatility.</li>
+        <li><strong>Extreme-Tail Sensitivity Across Heterogeneous Domains:</strong> As shown in Figure 1, <code>Precision@20</code> (0.500) trails the heuristic baseline even though global PR-AUC (0.815) and full-tier precision (79.9% across 239 <code>Urgent Refresh</code> pages) exceed both the baseline and base rate. Cross-domain probability calibration remains sensitive when a single unseen client exhibits atypical site-wide volatility.</li>
         <li><strong>Seasonal &amp; Single-Horizon Scope:</strong> Because the outcome window spans June 2026 immediately following March–May 2026, seasonal summer demand shifts can elevate baseline decline rates (71.3% overall) independently of content quality.</li>
         <li><strong>GSC Privacy Truncation:</strong> Google Search Console omits rare long-tail queries; observed metrics reflect visible head and mid-tail demand.</li>
       </ul>
@@ -407,32 +407,32 @@
             <td>1</td>
             <td><strong>Urgent Refresh</strong></td>
             <td><code>RC-01</code>: <code>rf_prob &ge; 0.80</code> &amp; <code>impressions_90d &ge; 5,000</code></td>
-            <td class="num">248</td>
-            <td class="num">43,058</td>
-            <td class="num"><strong>81.9%</strong></td>
+            <td class="num">239</td>
+            <td class="num">51,370</td>
+            <td class="num"><strong>79.9%</strong></td>
           </tr>
           <tr>
             <td>2</td>
             <td><strong>Standard Refresh</strong></td>
             <td><code>RC-02</code>: <code>rf_prob &ge; 0.80</code> &amp; <code>impressions_90d &lt; 5,000</code></td>
-            <td class="num">65</td>
-            <td class="num">225</td>
-            <td class="num"><strong>90.8%</strong></td>
+            <td class="num">75</td>
+            <td class="num">216</td>
+            <td class="num"><strong>92.0%</strong></td>
           </tr>
           <tr>
             <td>3</td>
             <td><strong>Review for Retirement</strong></td>
             <td><code>RC-03</code>: <code>rf_prob &lt; 0.60</code>, <code>impr &lt; 500</code> &amp; <code>stale &gt; 365d</code></td>
-            <td class="num">10</td>
-            <td class="num">275</td>
-            <td class="num">80.0%</td>
+            <td class="num">13</td>
+            <td class="num">310</td>
+            <td class="num">84.6%</td>
           </tr>
           <tr>
             <td>4</td>
             <td><strong>Monitor</strong></td>
             <td><code>RC-04</code>: All remaining active corpus items</td>
-            <td class="num">44,233</td>
-            <td class="num">1,807</td>
+            <td class="num">44,229</td>
+            <td class="num">1,809</td>
             <td class="num">78.1%</td>
           </tr>
         </tbody>
@@ -441,7 +441,7 @@
       <figure>
         <img src="img/fig3_playbook_precision.png" alt="Calibration Check Across Playbook Tiers" />
         <figcaption>
-          <strong>Figure 3:</strong> Observed June 2026 traffic decline rate across editorial action tiers on unseen clients, confirming that <code>Urgent Refresh</code> (81.9%) and <code>Standard Refresh</code> (90.8%) concentrate higher true decay incidence than the 78.1% test baseline.
+          <strong>Figure 3:</strong> Observed June 2026 traffic decline rate across editorial action tiers on unseen clients, confirming that <code>Urgent Refresh</code> (79.9%) and <code>Standard Refresh</code> (92.0%) concentrate higher true decay incidence than the 78.1% test baseline.
         </figcaption>
       </figure>
 
