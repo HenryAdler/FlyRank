@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Predicting Organic Search Decay to Prioritize Content Refresh Queues | Henry Adler</title>
+  <style>
+    :root {
+      --bg: #F9FAFB;
+      --surface: #FFFFFF;
+      --text: #111827;
+      --muted: #4B5563;
+      --border: #E5E7EB;
+      --accent: #2563EB;
+      --accent-soft: #EFF6FF;
+      --badge-bg: #F3F4F6;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+      line-height: 1.68;
+      font-size: 16px;
+    }
+    .container {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 3rem 1.5rem 4rem;
+    }
+    header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 2rem;
+      margin-bottom: 2.25rem;
+    }
+    .eyebrow {
+      display: inline-block;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: var(--accent-soft);
+      padding: 0.25rem 0.65rem;
+      border-radius: 999px;
+      margin-bottom: 0.85rem;
+    }
+    h1 {
+      font-size: 2.15rem;
+      line-height: 1.22;
+      margin: 0 0 0.75rem;
+      letter-spacing: -0.02em;
+    }
+    .meta {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+    .meta a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .meta a:hover { text-decoration: underline; }
+    .abstract-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      border-radius: 8px;
+      padding: 1.5rem 1.75rem;
+      margin: 1.75rem 0 0;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    }
+    .abstract-box h2 {
+      margin: 0 0 0.5rem;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--accent);
+      border: none;
+      padding: 0;
+    }
+    .abstract-box p { margin: 0; color: #1F2937; }
+    section { margin-bottom: 2.75rem; }
+    h2 {
+      font-size: 1.45rem;
+      margin: 0 0 1rem;
+      padding-bottom: 0.45rem;
+      border-bottom: 1px solid var(--border);
+      letter-spacing: -0.01em;
+    }
+    h3 {
+      font-size: 1.1rem;
+      margin: 1.4rem 0 0.5rem;
+      color: #1F2937;
+    }
+    p { margin: 0 0 1rem; }
+    ul, ol { margin: 0 0 1rem; padding-left: 1.35rem; }
+    li { margin-bottom: 0.45rem; }
+    code {
+      background: var(--badge-bg);
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      font-size: 0.88em;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    .formula-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin: 1rem 0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.92rem;
+      overflow-x: auto;
+    }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 1rem;
+      margin: 1.25rem 0 1.75rem;
+    }
+    .kpi-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.1rem 1.2rem;
+    }
+    .kpi-label {
+      font-size: 0.82rem;
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .kpi-value {
+      font-size: 1.65rem;
+      font-weight: 700;
+      color: var(--text);
+      margin: 0.25rem 0;
+    }
+    .kpi-sub { font-size: 0.84rem; color: var(--muted); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.25rem 0 1.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      font-size: 0.92rem;
+    }
+    th, td {
+      padding: 0.72rem 0.85rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    th {
+      background: #F3F4F6;
+      font-weight: 600;
+      color: #1F2937;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr.highlight td {
+      background: var(--accent-soft);
+      font-weight: 600;
+    }
+    .num { text-align: right; font-variant-numeric: tabular-nums; }
+    figure {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      margin: 1.5rem 0;
+    }
+    figure img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 4px;
+    }
+    figcaption {
+      margin-top: 0.75rem;
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+    .callout {
+      background: #FEFCE8;
+      border: 1px solid #FDE047;
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin: 1.25rem 0;
+      font-size: 0.94rem;
+    }
+    footer {
+      border-top: 1px solid var(--border);
+      padding-top: 1.75rem;
+      margin-top: 3rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    footer a {
+      color: var(--accent);
+      font-weight: 600;
+      text-decoration: none;
+    }
+    footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <span class="eyebrow">Search Intelligence Research Paper · Refresh / Content Opportunity Scoring</span>
+      <h1>Predicting Organic Search Decay to Prioritize Content Refresh Queues</h1>
+      <div class="meta">
+        <strong>Author:</strong> Henry Adler &nbsp;·&nbsp;
+        <strong>Repository:</strong> <a href="https://github.com/HenryAdler/FlyRank" target="_blank" rel="noopener">github.com/HenryAdler/FlyRank</a> &nbsp;·&nbsp;
+        <strong>Dataset Release:</strong> FlyRank Warehouse <code>v20260703</code>
+      </div>
+
+      <div class="abstract-box">
+        <h2>Abstract</h2>
+        <p>
+          Can longitudinal search visibility, user engagement, and pre-cutoff ranking momentum signals reliably prioritize web pages by their risk of future organic traffic decline across unseen client domains?
+          Using the FlyRank ML Internship warehouse release (<code>v20260703</code>), we constructed a leakage-free panel of 118,072 eligible URLs across 37 anonymized clients by strictly separating a 90-day observation window (March–May 2026) from a 30-day future outcome window (June 2026).
+          We trained a 19-feature Random Forest classifier evaluated under a client-grouped holdout split (8 unseen domains, 44,556 URLs) against a deterministic age-and-demand heuristic baseline.
+          The model outperformed the heuristic baseline in out-of-sample ranking discrimination (ROC-AUC 0.560 vs. 0.537; PR-AUC 0.812 vs. 0.804), driven primarily by average rank position, 90-day impressions, click-through rate, and 30-vs-60-day position drift (<code>pos_delta_30v60</code>).
+          Translating calibrated probabilities into a four-tier editorial action playbook isolated 248 <code>Urgent Refresh</code> candidates (81.9% observed decline rate) and 65 <code>Standard Refresh</code> candidates (90.8% observed decline rate) for human-in-the-loop review.
+        </p>
+      </div>
+    </header>
+
+    <section id="introduction">
+      <h2>1. Introduction &amp; Problem Statement</h2>
+      <p>
+        Editorial and SEO teams routinely oversee tens of thousands of published URLs with strictly bounded human capacity for content updates. Relying on ad-hoc spot checks or naive chronological rules (such as rewriting the oldest articles first) wastes editorial bandwidth on stable evergreen pages while allowing high-demand assets to erode unnoticed.
+      </p>
+      <p>
+        <strong>The Operational Decision Supported:</strong> This study establishes an empirical <strong>decision-support ranking engine</strong> under the <em>Refresh / Content Opportunity Scoring</em> lane. Rather than automating edits or making causal claims about search engine algorithms, the system orders eligible URLs by calibrated near-term decline probability (<code>rf_prob</code>) and search impression exposure so editors can triage high-value pages exhibiting early structural or ranking wear.
+      </p>
+    </section>
+
+    <section id="data">
+      <h2>2. Data &amp; Public-Safety Filtering</h2>
+      <p>
+        All records were queried directly via DuckDB over Parquet partitions from the <strong>FlyRank Internship Pseudonymized Warehouse Release (<code>v20260703</code>)</strong>, joining three star-schema tables:
+      </p>
+      <ul>
+        <li><code>fact_content_daily_performance</code> (partitions <code>month=2026-03</code> through <code>month=2026-06</code>): Daily Google Search Console (GSC) and GA4 telemetry per anonymized <code>(client_hash_id, content_hash_id)</code>.</li>
+        <li><code>dim_content</code>: Page lifecycle dates, word counts, keyword search volume, backlink counts, and publication status.</li>
+        <li><code>dim_clients</code>: Property onboarding timestamps (<code>gsc_data_start</code>) and active GSC/GA4 integration flags.</li>
+      </ul>
+
+      <h3>Strict Temporal Windows &amp; Exclusions</h3>
+      <ul>
+        <li><strong>Observation Window (Features):</strong> 90 days from <code>2026-03-03</code> to <code>2026-05-31</code>, subdivided into a recent 30-day window (May 2026) and a prior 60-day window (March–April 2026) to capture pre-cutoff momentum.</li>
+        <li><strong>Future Outcome Window (Target Label):</strong> 30 days from <code>2026-06-01</code> to <code>2026-06-30</code>.</li>
+        <li><strong>Cold-Start &amp; Noise Exclusions:</strong> Properties with <code>gsc_data_start &gt; 2026-03-03</code>, unpublished or deleted items, and low-volume pages with fewer than 100 impressions over 90 days (or fewer than 50 impressions in May 2026) were excluded to prevent small-count volatility from distorting binary decay labels.</li>
+        <li><strong>Public-Safety Compliance:</strong> Zero raw client domains, full URLs, URL/keyword hashes, or unhashed search queries appear in feature matrices, artifacts, or this report.</li>
+      </ul>
+
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Eligible URLs</div>
+          <div class="kpi-value">118,072</div>
+          <div class="kpi-sub">Across 37 active anonymized clients</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Future Decay Rate</div>
+          <div class="kpi-value">71.3%</div>
+          <div class="kpi-sub">Observed June decline (&ge;20% drop)</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Unseen Test Set</div>
+          <div class="kpi-value">44,556</div>
+          <div class="kpi-sub">8 held-out client domains (78.1% base rate)</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Missing Word Count</div>
+          <div class="kpi-value">26.5%</div>
+          <div class="kpi-sub">Preserved via explicit <code>has_word_count</code> flag</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="methodology">
+      <h2>3. Methodology</h2>
+      <h3>Target Definition &amp; 19 Pre-Cutoff Features</h3>
+      <p>
+        A URL is labeled positive (<code>is_declining_label = 1</code>) if its June 2026 clicks dropped by at least 20% relative to May 2026 (for pages with at least 5 baseline clicks) <strong>or</strong> its June 2026 impressions dropped by at least 20% relative to May 2026. All 19 predictor features are computed strictly on or before <code>2026-05-31</code>:
+      </p>
+      <ul>
+        <li><strong>Search Demand &amp; Visibility (90d):</strong> <code>impressions_90d</code>, <code>clicks_90d</code>, <code>avg_position</code>, <code>ctr</code>.</li>
+        <li><strong>Engagement &amp; AI Referral Signals (90d):</strong> <code>sessions_90d</code>, <code>ai_sessions_90d</code>, <code>engagement_rate</code>, <code>scroll_rate</code>, <code>ai_traffic_pct</code>.</li>
+        <li><strong>Lifecycle &amp; Authority:</strong> <code>content_age_days</code>, <code>days_since_last_update</code> (capped at <code>2026-05-31</code>), <code>word_count</code>, <code>search_volume</code>, <code>backlinks</code>.</li>
+        <li><strong>Pre-Cutoff Trajectory (May vs. Mar–Apr):</strong> <code>impr_momentum_30v60</code>, <code>click_momentum_30v60</code>, and <code>pos_delta_30v60</code> (shift in impression-weighted average rank).</li>
+        <li><strong>Structural Missingness Flags:</strong> <code>has_search_data</code> and <code>has_word_count</code> so tree splits separate missing telemetry from true zero values.</li>
+      </ul>
+
+      <h3>Deterministic Heuristic Baseline</h3>
+      <p>
+        To test whether machine learning adds value over standard editorial heuristics, we benchmarked our Random Forest (<code>n_estimators=200</code>, <code>max_depth=8</code>, <code>min_samples_leaf=25</code>) on the exact same test partition against a rule-based score prioritizing older, high-impression pages with visible rankings:
+      </p>
+      <div class="formula-box">
+        baseline_score = (content_age_days / 365.0) * log(1 + impressions_90d) / (avg_position + 1.0)
+      </div>
+
+      <h3>Honest Validation &amp; Leakage Audit</h3>
+      <p>
+        Pages within the same website share domain authority, CMS templates, and site-wide algorithm sensitivity. Using a standard random split leaks domain signatures across partitions, inflating offline PR-AUC to <strong>0.859</strong>. Applying a strict <strong>Grouped Client-Holdout Split</strong> (<code>GroupShuffleSplit</code> on <code>client_hash_id</code>, 29 train clients / 8 unseen test clients) eliminates entity overlap and reveals a realistic out-of-sample PR-AUC of <strong>0.812</strong> (a <code>+0.047</code> memorization gap).
+      </p>
+    </section>
+
+    <section id="results">
+      <h2>4. Results (Model vs. Baseline)</h2>
+      <p>
+        Evaluated on the 44,556 URLs belonging to the 8 unseen test clients (where the positive decline base rate is <code>0.781</code>), the Random Forest classifier achieves stronger global ranking discrimination across both ROC-AUC and PR-AUC than the deterministic heuristic baseline:
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Method (Evaluated on Identical 8-Client Holdout)</th>
+            <th class="num">ROC-AUC</th>
+            <th class="num">PR-AUC</th>
+            <th class="num">Precision@20</th>
+            <th class="num">Precision@50</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Random / Test Base Rate Reference</td>
+            <td class="num">0.500</td>
+            <td class="num">0.781</td>
+            <td class="num">0.781</td>
+            <td class="num">0.781</td>
+          </tr>
+          <tr>
+            <td>Rule-Based Baseline (Age &times; Demand / Position)</td>
+            <td class="num">0.537</td>
+            <td class="num">0.804</td>
+            <td class="num">0.800</td>
+            <td class="num">0.820</td>
+          </tr>
+          <tr class="highlight">
+            <td>Random Forest Classifier (19 Features, Grouped Split)</td>
+            <td class="num">0.560</td>
+            <td class="num">0.812</td>
+            <td class="num">0.450</td>
+            <td class="num">0.680</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <figure>
+        <img src="img/fig1_model_comparison.png" alt="Ranking Performance on Unseen Client Holdout Split" />
+        <figcaption>
+          <strong>Figure 1:</strong> Out-of-sample comparison across PR-AUC, Precision@20, and Precision@50 on the 8 unseen client domains (n = 44,556 URLs). While the Random Forest leads globally in PR-AUC (0.812) and ROC-AUC (0.560), extreme top-20 tail concentration from a single test client depresses Precision@20 before stabilizing across broader action tiers.
+        </figcaption>
+      </figure>
+
+      <h3>Out-of-Sample Feature Reliance</h3>
+      <p>
+        Permutation importance computed on the unseen client split confirms that predictions rely on observable visibility and pre-cutoff ranking momentum rather than spurious noise. Average SERP position (<code>avg_position</code>), 90-day demand (<code>impressions_90d</code>), click-through rate (<code>ctr</code>), and our engineered 30-vs-60-day position shift (<code>pos_delta_30v60</code>) rank as the top four drivers of out-of-sample PR-AUC.
+      </p>
+
+      <figure>
+        <img src="img/fig2_feature_importance.png" alt="Out-of-Sample Feature Reliance via Permutation Importance" />
+        <figcaption>
+          <strong>Figure 2:</strong> Mean PR-AUC drop upon feature permutation across 5 repeats on the held-out client test set, highlighting the predictive contribution of baseline rank, impression volume, CTR, and pre-cutoff ranking drift (<code>pos_delta_30v60</code>).
+        </figcaption>
+      </figure>
+    </section>
+
+    <section id="limitations">
+      <h2>5. Limitations &amp; Honest Framing</h2>
+      <div class="callout">
+        <strong>Framing Notice:</strong> All findings represent <em>observed statistical associations</em> in historical telemetry. They provide directional <em>decision-support</em> for editorial triage and do not prove search engine ranking causality or guarantee traffic lift after a content edit.
+      </div>
+      <ul>
+        <li><strong>Observational vs. Causal Inference:</strong> A high <code>rf_prob</code> score indicates elevated observed risk of traffic decline under historical patterns; it does not establish that refreshing a page will cause recovery without a controlled A/B or holdout experiment.</li>
+        <li><strong>Extreme-Tail Sensitivity Across Heterogeneous Domains:</strong> As shown in Figure 1, <code>Precision@20</code> (0.450) trails the heuristic baseline even though global PR-AUC (0.812) and full-tier precision (81.9% across 248 <code>Urgent Refresh</code> pages) exceed both the baseline and base rate. Cross-domain probability calibration remains sensitive when a single unseen client exhibits atypical site-wide volatility.</li>
+        <li><strong>Seasonal &amp; Single-Horizon Scope:</strong> Because the outcome window spans June 2026 immediately following March–May 2026, seasonal summer demand shifts can elevate baseline decline rates (71.3% overall) independently of content quality.</li>
+        <li><strong>GSC Privacy Truncation:</strong> Google Search Console omits rare long-tail queries; observed metrics reflect visible head and mid-tail demand.</li>
+      </ul>
+    </section>
+
+    <section id="recommendations">
+      <h2>6. Ranked Recommendations &amp; Action Playbook</h2>
+      <p>
+        Rather than exposing raw model probabilities directly to writers, predictions are mapped into an ordered four-tier operational queue combining calibrated risk thresholds, search demand exposure, and explicit reason codes:
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Tier</th>
+            <th>Recommended Action</th>
+            <th>Trigger Rule &amp; Reason Code</th>
+            <th class="num">Test URLs</th>
+            <th class="num">Median Impr. (90d)</th>
+            <th class="num">Observed Decline Rate</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="highlight">
+            <td>1</td>
+            <td><strong>Urgent Refresh</strong></td>
+            <td><code>RC-01</code>: <code>rf_prob &ge; 0.80</code> &amp; <code>impressions_90d &ge; 5,000</code></td>
+            <td class="num">248</td>
+            <td class="num">43,058</td>
+            <td class="num"><strong>81.9%</strong></td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td><strong>Standard Refresh</strong></td>
+            <td><code>RC-02</code>: <code>rf_prob &ge; 0.80</code> &amp; <code>impressions_90d &lt; 5,000</code></td>
+            <td class="num">65</td>
+            <td class="num">225</td>
+            <td class="num"><strong>90.8%</strong></td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td><strong>Review for Retirement</strong></td>
+            <td><code>RC-03</code>: <code>rf_prob &lt; 0.60</code>, <code>impr &lt; 500</code> &amp; <code>stale &gt; 365d</code></td>
+            <td class="num">10</td>
+            <td class="num">275</td>
+            <td class="num">80.0%</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td><strong>Monitor</strong></td>
+            <td><code>RC-04</code>: All remaining active corpus items</td>
+            <td class="num">44,233</td>
+            <td class="num">1,807</td>
+            <td class="num">78.1%</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <figure>
+        <img src="img/fig3_playbook_precision.png" alt="Calibration Check Across Playbook Tiers" />
+        <figcaption>
+          <strong>Figure 3:</strong> Observed June 2026 traffic decline rate across editorial action tiers on unseen clients, confirming that <code>Urgent Refresh</code> (81.9%) and <code>Standard Refresh</code> (90.8%) concentrate higher true decay incidence than the 78.1% test baseline.
+        </figcaption>
+      </figure>
+
+      <h3>Sample Top-10 Prioritized Queue (Public-Safe Anonymized IDs)</h3>
+      <table>
+        <thead>
+          <tr>
+            <th class="num">Rank</th>
+            <th>Anonymized Client ID</th>
+            <th>Anonymized Content ID</th>
+            <th>Action &amp; Reason</th>
+            <th class="num">Decay Prob</th>
+            <th class="num">Impr. (90d)</th>
+            <th class="num">Avg Pos</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="num">1</td>
+            <td><code>client_157ffe4d4a595515</code></td>
+            <td><code>content_c9a7f1f492cf379b</code></td>
+            <td>Urgent Refresh (<code>RC-01</code>)</td>
+            <td class="num">0.877</td>
+            <td class="num">30,940</td>
+            <td class="num">9.0</td>
+          </tr>
+          <tr>
+            <td class="num">2</td>
+            <td><code>client_fef1a8f436438636</code></td>
+            <td><code>content_a7083afedc8563db</code></td>
+            <td>Urgent Refresh (<code>RC-01</code>)</td>
+            <td class="num">0.870</td>
+            <td class="num">24,810</td>
+            <td class="num">16.8</td>
+          </tr>
+          <tr>
+            <td class="num">3</td>
+            <td><code>client_157ffe4d4a595515</code></td>
+            <td><code>content_283aba300e9353f3</code></td>
+            <td>Urgent Refresh (<code>RC-01</code>)</td>
+            <td class="num">0.862</td>
+            <td class="num">141,581</td>
+            <td class="num">6.1</td>
+          </tr>
+          <tr>
+            <td class="num">4</td>
+            <td><code>client_fef1a8f436438636</code></td>
+            <td><code>content_10846e3ad187e023</code></td>
+            <td>Urgent Refresh (<code>RC-01</code>)</td>
+            <td class="num">0.862</td>
+            <td class="num">27,060</td>
+            <td class="num">15.2</td>
+          </tr>
+          <tr>
+            <td class="num">5</td>
+            <td><code>client_fef1a8f436438636</code></td>
+            <td><code>content_a47f92086af39fd5</code></td>
+            <td>Urgent Refresh (<code>RC-01</code>)</td>
+            <td class="num">0.861</td>
+            <td class="num">33,536</td>
+            <td class="num">13.9</td>
+          </tr>
+          <tr>
+            <td class="num">6</td>
+            <td><code>client_157ffe4d4a595515</code></td>
+            <td><code>content_72bb321615833a91</code></td>
+            <td>Urgent Refresh (<code>RC-01</code>)</td>
+            <td class="num">0.854</td>
+            <td class="num">36,242</td>
+            <td class="num">5.5</td>
+          </tr>
+          <tr>
+            <td class="num">7</td>
+            <td><code>client_fef1a8f436438636</code></td>
+            <td><code>content_d367ff34c5a033b4</code></td>
+            <td>Urgent Refresh (<code>RC-01</code>)</td>
+            <td class="num">0.849</td>
+            <td class="num">31,743</td>
+            <td class="num">12.1</td>
+          </tr>
+          <tr>
+            <td class="num">8</td>
+            <td><code>client_fef1a8f436438636</code></td>
+            <td><code>content_ba462518dad435fc</code></td>
+            <td>Urgent Refresh (<code>RC-01</code>)</td>
+            <td class="num">0.848</td>
+            <td class="num">229,299</td>
+            <td class="num">27.4</td>
+          </tr>
+          <tr>
+            <td class="num">9</td>
+            <td><code>client_fef1a8f436438636</code></td>
+            <td><code>content_b55d0b24c9851800</code></td>
+            <td>Urgent Refresh (<code>RC-01</code>)</td>
+            <td class="num">0.847</td>
+            <td class="num">32,961</td>
+            <td class="num">7.2</td>
+          </tr>
+          <tr>
+            <td class="num">10</td>
+            <td><code>client_fef1a8f436438636</code></td>
+            <td><code>content_78015c18938ad6ff</code></td>
+            <td>Urgent Refresh (<code>RC-01</code>)</td>
+            <td class="num">0.847</td>
+            <td class="num">23,182</td>
+            <td class="num">16.9</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Human-in-the-Loop Governance &amp; No-Go Guardrails</h3>
+      <ul>
+        <li><strong>Editorial Verification Required:</strong> Editors must inspect live SERP intent, seasonal cycles, and brand positioning before rewriting flagged URLs.</li>
+        <li><strong>Strict No-Go List:</strong> Zero automated unpublishing, 301 redirects, or unsupervised edits to legal, regulatory, or compliance pages based solely on model scores.</li>
+      </ul>
+    </section>
+
+    <section id="reproducibility">
+      <h2>7. Reproducibility</h2>
+      <p>
+        Every weekly assignment notebook, the end-to-end capstone DuckDB/scikit-learn notebook, and the exported public-safe action queue are versioned in the public repository:
+      </p>
+      <ul>
+        <li><strong>GitHub Repository:</strong> <a href="https://github.com/HenryAdler/FlyRank" target="_blank" rel="noopener">https://github.com/HenryAdler/FlyRank</a></li>
+        <li><strong>Notebooks Directory:</strong> <code>work/</code> (contains all weekly notebooks and the consolidated capstone pipeline with fixed seed <code>SEED = 42</code>)</li>
+        <li><strong>Exported Public-Safe Queue:</strong> <code>work/outputs/capstone_action_queue.csv</code></li>
+      </ul>
+    </section>
+
+    <footer>
+      <p>
+        <strong>Acknowledgments &amp; Data Credit:</strong>
+        <a href="https://flyrank.ai" target="_blank" rel="noopener">Built on the FlyRank ML Internship dataset</a>.
+      </p>
+    </footer>
+  </div>
+</body>
+</html>
