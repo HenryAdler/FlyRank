@@ -1,0 +1,40 @@
+{
+  "notebook": "w07_action_playbook.ipynb",
+  "total_urls_scored": 30000,
+  "distinct_clients": 32,
+  "action_breakdown": [
+    {
+      "recommended_action": "Urgent Refresh",
+      "reason_code": "RC-01: High Decay Risk + High Demand",
+      "url_count": 3982,
+      "pct_of_corpus": 13.27,
+      "median_impressions_90d": 2488.5,
+      "mean_decay_prob": 0.693
+    },
+    {
+      "recommended_action": "Standard Refresh",
+      "reason_code": "RC-02: Elevated Decay Risk + Visible Rank",
+      "url_count": 4209,
+      "pct_of_corpus": 14.03,
+      "median_impressions_90d": 371.0,
+      "mean_decay_prob": 0.7078
+    },
+    {
+      "recommended_action": "Review for Retirement",
+      "reason_code": "RC-03: Stale Content + Low Search Demand",
+      "url_count": 2,
+      "pct_of_corpus": 0.01,
+      "median_impressions_90d": 1.0,
+      "mean_decay_prob": 0.0975
+    },
+    {
+      "recommended_action": "Monitor",
+      "reason_code": "RC-04: Stable Trajectory / Low Urgency",
+      "url_count": 21807,
+      "pct_of_corpus": 72.69,
+      "median_impressions_90d": 569.0,
+      "mean_decay_prob": 0.4769
+    }
+  ],
+  "exported_figure": "work/figures/w07_playbook_action_distribution.png"
+}
