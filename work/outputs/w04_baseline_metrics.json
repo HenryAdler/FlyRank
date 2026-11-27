@@ -1,0 +1,15 @@
+{
+  "notebook": "w04_baseline_score.ipynb",
+  "lane": "Lane 1 - Content Refresh / Opportunity Scoring",
+  "total_rows": 30000,
+  "eligible_rows": 22006,
+  "base_decline_rate": 0.0,
+  "baseline_precision_at_20": 0.0,
+  "baseline_precision_at_50": 0.0,
+  "baseline_precision_at_100": 0.0,
+  "baseline_pr_auc": 0.0,
+  "signal_verdicts": {
+    "days_since_last_update": "FALSE",
+    "impressions_90d": "FALSE"
+  }
+}
