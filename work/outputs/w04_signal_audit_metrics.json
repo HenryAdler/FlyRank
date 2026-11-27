@@ -1,0 +1,11 @@
+{
+  "notebook": "w04_signal_audit.ipynb",
+  "rows_audited": 30000,
+  "zero_position_rows": 1205,
+  "verdicts": {
+    "signal_1_impressions_90d": "FALSE",
+    "signal_2_avg_position_clean": "FALSE",
+    "flag_linked_staleness_180d_eligible": "FALSE / WEAK"
+  },
+  "flag_test_eligible_delta": 0.0
+}
